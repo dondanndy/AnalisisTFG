@@ -21,7 +21,7 @@ def get_tag_data(tag):
     return np.array([x_data, x_data_var, y_data, y_data_var, qf, qf_var])
 
 
-def get_tray(tag, title):
+def get_tray(tag, title, dim):
 
     for i in range(3):
         file = tag + "-" + str(i) + ".txt"
@@ -29,8 +29,8 @@ def get_tray(tag, title):
         puntos = np.loadtxt(file, delimiter='\t', dtype={'names': ('x_teo', 'y_teo', 'tag', 'x_real', 'y_real', 'trash'),
                                                         'formats': ('f4', 'f4', 'S35', 'f4', 'f4', 'f4')})
 
-        matriz = np.empty((4,5,5))         
-        matriz_var = np.empty((4,5,5))       
+        matriz = np.empty((4, 2 * dim[0] + 1, 2 * dim[1] + 1))         
+        matriz_var = np.empty((4, 2 * dim[0] + 1, 2 * dim[1] + 1))       
 
         for punto in puntos:
             data = get_tag_data(punto['tag'].decode('UTF-8'))
@@ -39,20 +39,20 @@ def get_tray(tag, title):
             diff_y = np.abs(punto['y_real'] - data[2])
             ratio_diff = diff_x/diff_y
 
-            matriz[0][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = 100 * diff_x
-            matriz[1][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = 100 * diff_y
-            # matriz[2][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = np.abs(np.round(np.sqrt(np.power(punto['x_real'], 2) + np.power(punto['y_real'], 2)) - np.sqrt(np.power(data[0], 2) + np.power(data[2], 2)), 4)) #Probablemente no sirva
-            matriz[2][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = 100 * np.abs(np.round(np.sqrt(np.power(diff_x, 2) + np.power(diff_y, 2)), 4)) #Quiza es la buena
+            matriz[0][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = 100 * diff_x
+            matriz[1][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = 100 * diff_y
+            # matriz[2][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = np.abs(np.round(np.sqrt(np.power(punto['x_real'], 2) + np.power(punto['y_real'], 2)) - np.sqrt(np.power(data[0], 2) + np.power(data[2], 2)), 4)) #Probablemente no sirva
+            matriz[2][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = 100 * np.abs(np.round(np.sqrt(np.power(diff_x, 2) + np.power(diff_y, 2)), 4)) #Quiza es la buena
             
-            # matriz[2][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = np.round(np.abs(diff_x *punto['x_real'] + diff_y*punto['y_real']) / np.sqrt(np.power(punto['x_real'], 2) + np.power(punto['y_real'], 2)), 4)
+            # matriz[2][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = np.round(np.abs(diff_x *punto['x_real'] + diff_y*punto['y_real']) / np.sqrt(np.power(punto['x_real'], 2) + np.power(punto['y_real'], 2)), 4)
             
-            matriz[3][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = data[4]
+            matriz[3][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = data[4]
 
             # Matriz varianzas
-            matriz_var[0][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = 100 * np.round(data[1],3)
-            matriz_var[1][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = 100 * np.round(data[3],3)
-            matriz_var[2][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = 9999.0
-            matriz_var[3][int(punto['y_teo'])+2][int(punto['x_teo'])+2] = data[5]
+            matriz_var[0][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = 100 * np.round(data[1],3)
+            matriz_var[1][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = 100 * np.round(data[3],3)
+            matriz_var[2][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = 9999.0
+            matriz_var[3][int(punto['y_teo'])+ dim[0]][int(punto['x_teo'])+ dim[1]] = data[5]
 
             # print(data)
 
@@ -70,10 +70,10 @@ def get_tray(tag, title):
 def main():
 
     tag = "D:/Descargas/Universidad/TFG/analisis/datos/2020-06-22--18h23m"
-    get_tray(tag, "Espiral (Sensor en kinect)")
+    get_tray(tag, "Espiral (Sensor en kinect)", (2,2))
 
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/2020-06-22--19h14m"
-    # get_tray(tag, "Espiral (Sensor en medio)")
+    # get_tray(tag, "Espiral (Sensor en medio)", (2,2))
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/2020-06-22--18h48m"
 
 
