@@ -33,8 +33,11 @@ def plot_4(matrix, matrix_var, titles, sup_title):
             # ax.set_xticklabels(np.arange(-3,3,1))
             # ax.set_yticklabels(np.arange(3,-3,-1))
 
-            ax.set_xticklabels(np.arange(-shape[0]//2, shape[0]//2 +1,1))
-            ax.set_yticklabels(np.arange(shape[0]//2 +1,-shape[0]//2 -1,-1))
+            # print(shape)
+            # print(np.arange(-shape[1]//2 + 1, shape[1]//2 +1, 1))
+
+            ax.set_xticklabels(np.arange(-(shape[1]//2) +1, shape[1]//2 +1, 1))
+            ax.set_yticklabels(np.arange(shape[0]//2 + 1,-shape[0]//2 -1,-1))
 
             ax.set_xlabel("x")
             ax.set_ylabel("y")
@@ -58,7 +61,7 @@ def plot_1(matrix, title):
     # Loop over data dimensions and create text annotations.
     for i in range(shape[0]):
         for j in range(shape[1]):
-            text = ax.text(j, i, np.round(matrix[i, j]),
+            text = ax.text(j, i, np.round(matrix[i, j],2),
                         ha="center", va="center", color="w")
 
     ax.set_xticklabels(np.arange(-shape[0]//2, shape[0]//2 +1,1))
