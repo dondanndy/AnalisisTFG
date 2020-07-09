@@ -3,7 +3,10 @@ import numpy as np
 
 def plot_4(matrix, matrix_var, titles, sup_title):
 
-    fig, axs = plt.subplots(2,2)
+    fig, axs = plt.subplots(2,2, figsize=(14,9))
+
+    _min = np.min(matrix[0:2])
+    _max = np.max(matrix[0:2])
     
     for col in range(2):
         if col == 0:
@@ -17,7 +20,10 @@ def plot_4(matrix, matrix_var, titles, sup_title):
         
         for row in range(2):
             ax = axs[row, col]
-            im = ax.imshow(ma[row])
+            if row == 0:
+                im = ax.imshow(ma[row], interpolation='spline36', origin="lower",  vmin = _min, vmax = _max)
+            else:
+                im = ax.imshow(ma[row], interpolation='spline36', origin="lower")
 
             shape = ma[row].shape
 
@@ -54,7 +60,7 @@ def plot_4(matrix, matrix_var, titles, sup_title):
 def plot_1(matrix, title):
 
     fig, ax = plt.subplots()
-    im = ax.imshow(matrix)
+    im = ax.imshow(matrix, interpolation='spline36', origin="lower")
 
     shape = matrix.shape
 
@@ -64,9 +70,35 @@ def plot_1(matrix, title):
             text = ax.text(j, i, np.round(matrix[i, j],2),
                         ha="center", va="center", color="w")
 
-    ax.set_xticklabels(np.arange(-shape[0]//2, shape[0]//2 +1,1))
+    ax.set_xticklabels(np.arange(-shape[0]//2 + 1, shape[0]//2 +1,1))
     ax.set_yticklabels(np.arange(shape[0]//2 +1,-shape[0]//2 -1,-1))
 
     ax.set_title(title)
+    fig.tight_layout()
+    plt.show()
+
+def plot_2(matrix, matrix_var, title):
+
+    fig, axs = plt.subplots(1,2)
+    # im = ax.imshow(matrix, interpolation='spline36', origin="lower")
+
+    shape = matrix.shape
+
+    im = axs[0].imshow(matrix, interpolation='spline36', origin="lower")
+    axs[0].set_title(title)
+    fig.colorbar(im, ax=axs[0])
+    
+    im = axs[1].imshow(matrix_var, interpolation='spline36', origin="lower", cmap='hot')  
+    axs[1].set_title("Varianza")
+    fig.colorbar(im, ax=axs[1])
+
+    for i in range(2):
+        axs[i].set_xticklabels(np.arange(-shape[0]//2 + 1, shape[0]//2 +1,1))
+        axs[i].set_yticklabels(np.arange(shape[0]//2 +1,-shape[0]//2 -1,-1))
+
+        axs[i].set_xlabel("x")
+        axs[i].set_ylabel("y")
+
+    # fig.suptitle(title)
     fig.tight_layout()
     plt.show()

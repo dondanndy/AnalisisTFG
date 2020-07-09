@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from plot import plot_4, plot_1
+from plot import plot_4, plot_1, plot_2
 
 def read_tag_data_from_file(tag):
 
@@ -36,8 +36,8 @@ def get_tray(tag, title, dim):
             puntos = np.loadtxt(file, delimiter='\t', dtype={'names': ('x_teo', 'y_teo', 'tag', 'x_real', 'y_real', 'trash'),
                                                         'formats': ('f4', 'f4', 'S35', 'f4', 'f4', 'f4')})
 
-        matriz = np.empty((4, 2*dim[1] +1, 2*dim[0] +1))         
-        matriz_var = np.empty((4, 2*dim[1] +1, 2*dim[0] +1))       
+        matriz = np.zeros((4, 2*dim[1] +1, 2*dim[0] +1))         
+        matriz_var = np.zeros((4, 2*dim[1] +1, 2*dim[0] +1))       
 
         for punto in puntos:
             data = get_tag_data(punto['tag'].decode('UTF-8')) 
@@ -75,9 +75,9 @@ def get_tray(tag, title, dim):
             # print(f"{punto['x_real']:.4f} \t {punto['y_real']:.4f} \t {data[0]} +- {data[1]} \t {data[2]} +- {data[3]} \t " +
             #       f"{diff_x} - {diff_y} - {ratio_diff}")
 
-        for k in range(len(matriz)):
-            matriz[k] = np.flip(matriz[k],0)
-            matriz_var[k] = np.flip(matriz_var[k],0)
+        # for k in range(len(matriz)):
+        #     matriz[k] = np.flip(matriz[k],0)
+        #     matriz_var[k] = np.flip(matriz_var[k],0)
 
         plot_4(matriz, matriz_var, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title + f" - Trayectoria {i+1}")
         # plot_1(matriz[0], 'Diferencia X')
@@ -106,11 +106,11 @@ def get_tray_media(tag, title, dim, num):
 
             if cont == 3:
                 cont = 0
-                add = add + 0.03
+                add = add + 0.02
             else:
                 cont = cont + 1 
 
-            diff_x = punto['x_real'] - data[0] + add
+            diff_x = punto['x_real'] - data[0] + add - 0.1
             diff_y = punto['y_real'] - data[2]
             ratio_diff = diff_x/diff_y
 
@@ -119,17 +119,18 @@ def get_tray_media(tag, title, dim, num):
             matriz_int[i][2][int(punto['y_teo'])+ dim[1]][int(punto['x_teo'])+ dim[0]] = 100 * np.sqrt(np.power(diff_x, 2) + np.power(diff_y, 2)) #Quiza es la buena
             matriz_int[i][3][int(punto['y_teo'])+ dim[1]][int(punto['x_teo'])+ dim[0]] = data[4]
 
-        for k in range(len(matriz_int[i])):
-            matriz_int[i][k] = np.flip(matriz_int[i][k],0)
+        # for k in range(len(matriz_int[i])):
+        #     matriz_int[i][k] = np.flip(matriz_int[i][k],0)
 
     for i in range(len(matriz_int[0])):
         for j in range(len(matriz_int[0][i])):
             for k in range(len(matriz_int[0][i][j])):
                 matriz[i,j,k] = np.average(matriz_int[:,i,j,k])
-                matriz_var[i,j,k] = np.var(matriz_int[:,i,j,k])
+                matriz_var[i,j,k] = np.std(matriz_int[:,i,j,k])
 
-    plot_4(matriz, matriz_var, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title)
-    # plot_1(matriz[0], 'Diferencia X')
+    # plot_4(matriz, matriz_var, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title)
+    # plot_2(matriz[0], matriz_var[0], title)
+    plot_1(matriz[0], 'Diferencia X')
 
 
 def main():
@@ -152,11 +153,11 @@ def main():
 
     # 29/6 ------------------------------------------------
 
-    tag = "D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--16h55m" # 2 OK
+    # tag = "D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--16h55m" # 3 OK
     # get_tray(tag, "Vertical +0 grados (6 sensores)", (2,3))
-    get_tray_media(tag, "Vertical +0 grados (4 sensores)", (2,3), 2)
+    # get_tray_media(tag, "Vertical +0 grados (6 sensores)", (2,3), 3)
 
-    # tag = "D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--17h21m" #Tercero del de arriba, NO OK
+    # tag = "D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--17h21m" #Tercero del de arriba, OK
     # get_tray(tag, "Vertical +0 grados (4 sensores)", (2,3))
 
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--16h00m" # Todo OK
@@ -165,9 +166,11 @@ def main():
 
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/ESP2020-06-29--18h45m" #Solo 1 OK
     # get_tray(tag, "Espiral +0 grados (6 sensores)", (2,3))
+    # get_tray_media(tag, "Espiral +0 grados (6 sensores)", (2,2), 3)
 
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/ESP2020-06-29--12h02m" #Todo OK
     # get_tray(tag, "Espiral +90 grados (6 sensores)", (2,2))
+    # get_tray_media(tag, "Espiral +90 grados (6 sensores)", (2,2), 3)
 
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/ESP2020-06-29--12h26m" #Solo 2 OK
     # get_tray(tag, "Espiral +90 grados (4 sensores)", (2,2))
@@ -177,7 +180,21 @@ def main():
 
     # tag = "D:/Descargas/Universidad/TFG/analisis/datos/ESP2020-06-29--11h30m" #Solo 2 OK
     # get_tray(tag, "Espiral +0 grados (4 sensores)", (2,2))
+    # get_tray_media(tag, "Espiral +0 grados (4 sensores)", (2,2), 2)
 
+    # 2/7 -----------------------------------------------------------------------
+
+    # tag = "D:/Descargas/Universidad/TFG/analisis/datos/RAND2020-07-02--10h38m" #Todo OK
+    # get_tray(tag, "Aleatorio +0 grados (6 sensores)", (2,3))
+    # get_tray_media(tag, "Aleatorio +0 grados (6 sensores)", (2,3), 3)
+
+    # tag = "D:/Descargas/Universidad/TFG/analisis/datos/RAND2020-07-02--11h36m" #Todo OK
+    # get_tray(tag, "Aleatorio +0 grados (4 sensores)", (2,3))
+    # get_tray_media(tag, "Aleatorio +0 grados (4 sensores)", (2,3), 3)
+
+    tag = "D:/Descargas/Universidad/TFG/analisis/datos/ESP2020-07-02--13h08m" #Todo OK
+    # get_tray(tag, "Aleatorio +0 grados (6 sensores)", (2,3))
+    get_tray_media(tag, "Espiral +0 grados (6 sensores)", (2,3), 2)
 
 main()
 
