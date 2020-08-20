@@ -58,14 +58,10 @@ def get_tray(tag, title, dim):
             print(f"{punto['x_real']:.4f} \t {punto['y_real']:.4f} \t {data[0]} +- {data[1]} \t {data[2]} +- {data[3]} \t " +
                   f"{diff_x} - {diff_y} - {ratio_diff}")
 
-        # for k in range(len(matriz)):
-        #     matriz[k] = np.flip(matriz[k],0)
-        #     matriz_var[k] = np.flip(matriz_var[k],0)
-
         # plot_4(matriz, matriz_var, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title + f" - Trayectoria {i+1}")
         # plot_1(matriz[0], 'Diferencia X')
 
-def get_tray_media(tag, title, dim, num, corr=False):
+def get_tray_media(tag, title, dim, num, kin, corr=False):
 
     matriz_int = np.zeros((num, 4, 2*dim[1] +1, 2*dim[0] +1))
     matriz = np.zeros((4, 2*dim[1] +1, 2*dim[0] +1))
@@ -74,8 +70,8 @@ def get_tray_media(tag, title, dim, num, corr=False):
     for i in range(num):
         file = tag + "-" + str(i) + ".txt"
 
-        add = 0
-        cont=0
+        add  = 0
+        cont = 0
 
         try:
             puntos = np.loadtxt(file, delimiter='\t', dtype={'names': ('x_teo', 'y_teo', 'tag', 'x_real', 'x_real_var', 'y_real', 'y_real_var', 'yaw', 'trash'),
@@ -87,27 +83,24 @@ def get_tray_media(tag, title, dim, num, corr=False):
         for punto in puntos:
             data = get_tag_data(punto['tag'].decode('UTF-8')) 
 
-            if corr:
+            if corr: #Correccion por movimiento erratico del robot
                 if cont == 3:
                     cont = 0
                     add = add + 0.02
                 else:
                     cont = cont + 1 
 
-            # diff_x = punto['x_real'] - data[0]- 0.1  
-            # diff_x = punto['x_real'] - data[0] + add
-            diff_x = punto['x_real'] - data[0]
-            # diff_x = punto['x_real'] - data[0]- 0.1 + add 
+            if kin: #Correccion al colocar el sensor en el kinect
+                diff_x = punto['x_real'] - data[0]- 0.1 + add
+            else:
+                diff_x = punto['x_real'] - data[0]
+
             diff_y = punto['y_real'] - data[2]
-            ratio_diff = diff_x/diff_y
 
             matriz_int[i][0][int(punto['y_teo'])+ dim[1]][int(punto['x_teo'])+ dim[0]] = 100 * diff_x
             matriz_int[i][1][int(punto['y_teo'])+ dim[1]][int(punto['x_teo'])+ dim[0]] = 100 * diff_y
             matriz_int[i][2][int(punto['y_teo'])+ dim[1]][int(punto['x_teo'])+ dim[0]] = 100 * np.sqrt(np.power(diff_x, 2) + np.power(diff_y, 2)) #Quiza es la buena
             matriz_int[i][3][int(punto['y_teo'])+ dim[1]][int(punto['x_teo'])+ dim[0]] = data[4]
-
-        # for k in range(len(matriz_int[i])):
-        #     matriz_int[i][k] = np.flip(matriz_int[i][k],0)
 
     for i in range(len(matriz_int[0])):
         for j in range(len(matriz_int[0][i])):
@@ -116,17 +109,6 @@ def get_tray_media(tag, title, dim, num, corr=False):
                 matriz_var[i,j,k] = np.std(matriz_int[:,i,j,k])
 
     return np.array([matriz, matriz_var])
-
-    # plt.boxplot([matriz[0].reshape(35), matriz[1].reshape(35)], notch=True)
-    # plt.hist(matriz[0].reshape(35), bins=np.linspace(-30,30, 9))
-    # plt.hist2d(matriz[0].reshape(35), matriz[1].reshape(35))
-    # print(matriz[0].reshape(35))
-    # plt.show()
-    # plot_4(matriz, matriz_var, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title)
-    # plot_2(matriz[0], matriz_var[0], title)
-    # plot_1(matriz[0], 'Diferencia X')
-
-
 
 def plot_media(tag, title, dim, num, corr=False):
 
@@ -148,13 +130,17 @@ def plot_media_total(tags, corr, dim, num, title, file_name, save):
                 matriz[i,j,k] = np.average([ matriz_int[l,i,j,k] for l in range(len(tags)) ])
                 matriz_std[i,j,k] = np.std([ matriz_int[l,i,j,k] for l in range(len(tags)) ])
 
-
+    print("Total")
     print(np.average(matriz[2]))
     print(np.std(matriz[2]))
 
-    # plot_4(matriz, matriz_std, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title)
+    print("Dentro")
+    print(np.average(matriz[2][1:-1][1:-1]))
+    print(np.std(matriz[2][1:-1][1:-1]))
+    
+    plot_4(matriz, matriz_std, ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title)
     # plot_1(matriz[2], title)
-    plot_3(matriz, matriz_std, title, file_name, save)
+    # plot_3(matriz, matriz_std, title, file_name, save)
     # plot_4(matriz, np.full(matriz.shape, 9999.0), ['Diferencia X', 'Diferencia Y', 'Diferencia POS', "Factor de calidad"], title)
 
     # for i in range(matriz.shape[1]):
@@ -241,14 +227,14 @@ def main():
     tags_4 = np.array(["D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--16h00m", 
                     "D:/Descargas/Universidad/TFG/analisis/datos/RAND2020-07-02--11h36m"])
 
-    corr_4 = np.array([False, False])     
+    corr_4 = np.array([False, True])     
     num_4 = np.array([3,3,3])           
     
     tags_6 = np.array(["D:/Descargas/Universidad/TFG/analisis/datos/VERT2020-06-29--16h55m", 
                     "D:/Descargas/Universidad/TFG/analisis/datos/ESP2020-07-02--13h08m",
                     "D:/Descargas/Universidad/TFG/analisis/datos/RAND2020-07-02--10h38m"])
 
-    corr_6 = np.array([False, False, True])
+    corr_6 = np.array([False, True, True])
     num_6 = np.array([3,2,3])
 
     plot_media_total(tags_4, corr_4, (2,3), num_4, "4 sensores", "4sensores", False)              
